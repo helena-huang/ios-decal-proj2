@@ -19,6 +19,13 @@ class HangmanViewController: UIViewController {
     @IBOutlet weak var backgroundImageView: UIImageView!
     var gameOver = false
     var hangmanGame = Hangman()
+    let validLetters = "QWERTYUIOPASDFGHJKLZXCVBNM"
+    
+    func containsOnlyValidCharacters(strToCheck: String) -> Bool {
+        let disallowedCharacterSet = NSCharacterSet(charactersInString: validLetters).invertedSet
+        let invalidIndex = strToCheck.uppercaseString.rangeOfCharacterFromSet(disallowedCharacterSet)
+        return invalidIndex == nil
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,7 +34,6 @@ class HangmanViewController: UIViewController {
         //backgroundImageView.image = UIImage(named: "my-hangman-img/background.png")
         //backgroundImageView.frame = CGRectMake(0, 0, UIScreen.mainScreen().bounds.size.width, UIScreen.mainScreen().bounds.size.height)
         startGame(newGameButton)
-        print(hangmanGame.answer)
     }
 
     override func didReceiveMemoryWarning() {
@@ -36,9 +42,11 @@ class HangmanViewController: UIViewController {
     }
     
     @IBAction func clickedGuess(sender: AnyObject) {
-        if !gameOver && guessTextfield.text! != "" {
+        let guessText = guessTextfield.text!
+        if guessText.characters.count > 1 || !containsOnlyValidCharacters(guessText) {
+            invalidGuessAlert()
+        } else if !gameOver && guessText.characters.count == 1 {
             hangmanGame.guessLetter(guessTextfield.text!.uppercaseString)
-            print(hangmanGame.guessedLetters)
             knownLetters.text = hangmanGame.knownString
             guessedLettersLabel.text = hangmanGame.guesses()
             hangmanImageView.image = getHangmanImage()
@@ -64,6 +72,12 @@ class HangmanViewController: UIViewController {
         case 6: return UIImage(named: "my-hangman-img/hangman6.png")!
         default: return UIImage(named: "my-hangman-img/hangman0.png")!
         }
+    }
+    
+    func invalidGuessAlert() {
+        let alertController = UIAlertController(title: "Oops!", message: "Guesses can only be single letters.", preferredStyle: UIAlertControllerStyle.Alert)
+        alertController.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default,handler: nil))
+        self.presentViewController(alertController, animated: true, completion: nil)
     }
     
     func endGame(success: Bool) {
